@@ -11,9 +11,11 @@ protocol SKU {
     var name: String { get }
     func price() -> Int
 }
+
 protocol PricingScheme {
     func calculatePrice(for items: [Item]) -> Int
 }
+
 class TwoForOnePricing: PricingScheme {
     var eligibleItemName: String
     var itemPrice: Int
