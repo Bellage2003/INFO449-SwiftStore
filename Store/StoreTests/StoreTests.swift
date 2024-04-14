@@ -67,11 +67,49 @@ TOTAL: $7.97
         XCTAssertEqual(expectedReceipt, receipt.output())
     }
     
-    // Added test
+    // Added tests
+    // Test adding a single Item to the Register and displays its subtotal (which should be the single Item's price)
     func testAddingSingleItemSubtotal() throws {
         let pencil = Item(name: "Pencil", priceEach: 99)
         register.scan(pencil)
         let expectedSubtotal = pencil.price()
         XCTAssertEqual(expectedSubtotal, register.subtotal())
+    }
+    
+    // Test 2-for-1 Pricing
+    func testTwoForOnePricing() {
+        let pricingScheme = TwoForOnePricing(itemName: "Beans (8oz Can)", itemPrice: 199)
+        let register = Register(pricingScheme: pricingScheme)
+        
+        register.scan(Item(name: "Beans (8oz Can)", priceEach: 199))
+        register.scan(Item(name: "Beans (8oz Can)", priceEach: 199))
+        register.scan(Item(name: "Beans (8oz Can)", priceEach: 199))
+        XCTAssertEqual(398, register.subtotal())
+    }
+    
+    // Test 2-for-1 Pricing
+    func testMultipleTwoForOnePricing() {
+        let pricingScheme = TwoForOnePricing(itemName: "Beans (8oz Can)", itemPrice: 199)
+        let register = Register(pricingScheme: pricingScheme)
+        for _ in 1...6 {
+            register.scan(Item(name: "Beans (8oz Can)", priceEach: 199))
+        }
+
+        let expectedSubtotal = 4 * 199
+        XCTAssertEqual(expectedSubtotal, register.subtotal())
+
+        let receipt = register.total()
+        let expectedReceipt = """
+        Receipt:
+        Beans (8oz Can): $1.99
+        Beans (8oz Can): $1.99
+        Beans (8oz Can): $1.99
+        Beans (8oz Can): $1.99
+        Beans (8oz Can): $1.99
+        Beans (8oz Can): $1.99
+        ------------------
+        TOTAL: $7.96
+        """
+        XCTAssertEqual(expectedReceipt, receipt.output())
     }
 }
