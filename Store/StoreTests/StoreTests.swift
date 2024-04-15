@@ -112,4 +112,34 @@ TOTAL: $7.97
         """
         XCTAssertEqual(expectedReceipt, receipt.output())
     }
+    
+    // Test Coupon Discount
+    func testCouponDiscount() {
+        let coupon = Coupon(itemName: "Beans (8oz Can)")
+        let register = Register(coupon: coupon)
+        
+        register.scan(Item(name: "Beans (8oz Can)", priceEach: 199))
+        register.scan(Item(name: "Beans (8oz Can)", priceEach: 199))
+        
+        let expectedSubtotal = 199 + Int(199 * 0.85) 
+        // One full price, one with 15% discount
+        XCTAssertEqual(register.subtotal(), expectedSubtotal)
+    }
+    
+    // // Test Coupon Discount
+    func testMixedItemsSingleCoupon() {
+        let coupon = Coupon(itemName: "Beans (8oz Can)")
+        let register = Register(coupon: coupon)
+        
+        register.scan(Item(name: "Beans (8oz Can)", priceEach: 199))
+        register.scan(Item(name: "Pencil", priceEach: 50))
+        register.scan(Item(name: "Granola Bars (Box, 8ct)", priceEach: 300))
+        register.scan(Item(name: "Beans (8oz Can)", priceEach: 199))
+
+        let expectedSubtotal = Int(199 * 0.85) + 50 + 300 + 199
+        // One can with discount, others full price
+        XCTAssertEqual(register.subtotal(), expectedSubtotal)
+    }
+
+
 }

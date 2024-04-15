@@ -51,9 +51,11 @@ class Item: SKU {
 class Receipt {
     private var items: [Item] = []
     var pricingScheme: PricingScheme?
+    var coupon: Coupon?
 
-    init(pricingScheme: PricingScheme? = nil) {
+    init(pricingScheme: PricingScheme? = nil, coupon: Coupon? = nil) {
         self.pricingScheme = pricingScheme
+        self.coupon = coupon
     }
 
     func add(item: Item) {
@@ -65,10 +67,21 @@ class Receipt {
     }
 
     func total() -> Int {
-        guard let scheme = pricingScheme else {
-            return items.reduce(0) { $0 + $1.price() }
+        if let scheme = pricingScheme {
+            return scheme.calculatePrice(for: items)
         }
-        return scheme.calculatePrice(for: items)
+
+        var total = 0
+        var couponApplied = false
+        for item in items {
+            if !couponApplied, let coupon = coupon, item.name == coupon.itemName {
+                total += coupon.applyCoupon(to: item.price())
+                couponApplied = true
+            } else {
+                total += item.price()
+            }
+        }
+        return total
     }
 
     func output() -> String {
@@ -85,8 +98,8 @@ class Receipt {
 class Register {
     private var receipt: Receipt
 
-    init(pricingScheme: PricingScheme? = nil) {
-        self.receipt = Receipt(pricingScheme: pricingScheme)
+    init(pricingScheme: PricingScheme? = nil, coupon: Coupon? = nil) {
+        self.receipt = Receipt(pricingScheme: pricingScheme, coupon: coupon)
     }
 
     func scan(_ item: Item) {
@@ -99,10 +112,26 @@ class Register {
 
     func total() -> Receipt {
         let finalReceipt = receipt
-        receipt = Receipt(pricingScheme: receipt.pricingScheme)
+        receipt = Receipt(pricingScheme: receipt.pricingScheme, coupon: receipt.coupon) // Carry over the pricing scheme and coupon
         return finalReceipt
     }
 }
+
+
+class Coupon {
+    var itemName: String
+    var discountRate: Double
+
+    init(itemName: String, discountRate: Double = 0.15) {
+        self.itemName = itemName
+        self.discountRate = discountRate
+    }
+
+    func applyCoupon(to itemPrice: Int) -> Int {
+        return Int(Double(itemPrice) * (1.0 - discountRate))
+    }
+}
+
 
 class Store {
     let version = "0.1"
